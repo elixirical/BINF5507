@@ -30,7 +30,7 @@ def impute_missing_values(data, strategy='mean'):
             else:
                 data[col] == data[col].fillna('Unknown', inplace=True)
 
-    #data.dropna(inplace=True)
+    data.dropna(inplace=True)
 
     return(data)
 
