@@ -171,6 +171,6 @@ def simple_model(input_data, split_data=True, scale_data=False, print_report=Fal
     
     return None
 
-messy_data = pd.read_csv('../Data/messy_data.csv')
-cleaned = remove_redundant_features(normalize_data(remove_duplicates(impute_missing_values(messy_data))))
-print(cleaned[cleaned.columns[0]])
+#messy_data = pd.read_csv('../Data/messy_data.csv')
+#cleaned = remove_redundant_features(normalize_data(remove_duplicates(impute_missing_values(messy_data))))
+#print(cleaned[cleaned.columns[0]])
