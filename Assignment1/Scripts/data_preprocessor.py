@@ -19,15 +19,18 @@ def impute_missing_values(data, strategy='mean'):
     for col in data.columns:
         # if the column with that name in data is of type float64 or int64
         # it applies the imputation strategy 
-        if (data[col].dtypes == 'float64') or (data[col].dtypes == 'int64'):
-            if strategy == 'median':
-                data[col] == data[col].fillna(data[col].median(), inplace=True)
-            elif strategy == 'mode':
-                data[col] == data[col].fillna(data[col].mode(), inplace=True)
+        if col != 'target':
+            if (data[col].dtypes == 'float64') or (data[col].dtypes == 'int64'):
+                if strategy == 'median':
+                    data[col] == data[col].fillna(data[col].median(), inplace=True)
+                elif strategy == 'mode':
+                    data[col] == data[col].fillna(data[col].mode(), inplace=True)
+                else:
+                    data[col] == data[col].fillna(data[col].mean(), inplace=True)
             else:
-                data[col] == data[col].fillna(data[col].mean(), inplace=True)
-        else:
-            data[col] == data[col].fillna('Unknown', inplace=True)
+                data[col] == data[col].fillna('Unknown', inplace=True)
+
+    #data.dropna(inplace=True)
 
     return(data)
 
@@ -64,11 +67,16 @@ def normalize_data(data,method='minmax'):
     for col in data.columns:
         if data[col].dtypes == 'int64':
             data = data.astype({col: 'float64'})
+        elif col == 'target':
+            data = data.astype({col: 'Int64'})
 
     # replaces data in the original df with data from scaled_data
     # matching on column names
     data.update(scaled_data)
-    return(data)
+
+    #print(data)
+
+    return(data)    
 
 # 4. Remove Redundant Features   
 def remove_redundant_features(data, threshold=0.9):
@@ -78,8 +86,25 @@ def remove_redundant_features(data, threshold=0.9):
     :return: pandas DataFrame
     """
     
+    # generates correlation table
     corr_table = data.corr(numeric_only=True)
 
+    # empty list to store values
+    exceeds_threshold = []
+
+    # finds pairs which exceed the correlation threshold
+    for col in corr_table.columns:
+        for index, val in corr_table[col].items():
+            if (abs(val) >= threshold) and (index != corr_table[col].name):
+                pair = [corr_table[col].name,index]
+                exceeds_threshold.append(pair) 
+
+    # turns pairs into a flattened pd series
+    flattened = pd.Series(np.concatenate(exceeds_threshold).tolist())
+
+    # returns the original df with columns dropped which are present in 
+    # pairs that exceed the threshold
+    return(data.drop(flattened.unique(), axis = 1))
     
     
 
@@ -146,7 +171,6 @@ def simple_model(input_data, split_data=True, scale_data=False, print_report=Fal
     
     return None
 
-
-
 messy_data = pd.read_csv('../Data/messy_data.csv')
-remove_redundant_features(normalize_data(remove_duplicates(impute_missing_values(messy_data))))
+cleaned = remove_redundant_features(normalize_data(remove_duplicates(impute_missing_values(messy_data))))
+print(cleaned[cleaned.columns[0]])
